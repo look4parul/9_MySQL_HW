@@ -161,7 +161,7 @@ GROUP BY c.name ORDER BY "Gross Revenue"  LIMIT 5;
 Use the solution from the problem above to create a view. 
 If you haven't solved 7h, you can substitute another query to create a view. */
 
-CREATE VIEW topfive AS 
+CREATE VIEW top5 AS 
 SELECT c.name AS "Top 5 Genres", SUM(p.amount) AS "Gross Revenue" 
 FROM category c
 JOIN film_category fc ON (c.category_id=fc.category_id)
@@ -171,7 +171,7 @@ JOIN payment p ON (r.rental_id=p.rental_id)
 GROUP BY c.name ORDER BY "Gross Revenue"  LIMIT 5;
 
 /* 8b. How would you display the view that you created in 8a? */
-SELECT * FROM topfive;
+SELECT * FROM top5;
 
 /* You find that you no longer need the view `top_five_genres`. Write a query to delete it. */
-DROP VIEW topfive;
+DROP VIEW top5;
