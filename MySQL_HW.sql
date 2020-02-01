@@ -2,7 +2,7 @@ USE sakila;
 show tables;
 
 -- 1a. Display the first and last names of all actors
-SELECT first_name ,last_name FROM actor;
+SELECT first_name, last_name FROM actor;
 
 /* 1b. Display the first and last name of each actor in a single column in upper case letters. 
 Name the column `Actor Name`. */
@@ -10,15 +10,15 @@ SELECT UPPER(concat(first_name, " " ,last_name)) AS "Actor Name" FROM actor;
 
 /* 2a. You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." */
 SELECT actor_id, first_name, last_name FROM actor
-WHERE first_name = "Joe";
+WHERE UPPER(first_name) = UPPER("Joe");
 
 /* 2b. Find all actors whose last name contain the letters `GEN`*/
 SELECT concat(first_name, " " ,last_name) AS "Actor Name" FROM actor 
-WHERE last_name LIKE "%GEN%";
+WHERE UPPER(last_name) LIKE "%GEN%";
 
 /* 2c. Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that order */
-SELECT last_name, first_name FROM actor 
-WHERE last_name LIKE "%LI%";
+SELECT first_name, last_name FROM actor 
+WHERE UPPER(last_name) LIKE "%LI%" ORDER BY last_name, first_name;
 
 /* 2d. Using `IN`, display the `country_id` and `country` columns of the following countries: Afghanistan, Bangladesh, and China */
 SELECT country_id, country FROM country
@@ -40,13 +40,17 @@ SELECT * FROM actor;
 
 /* 4a. List the last names of actors, as well as how many actors have that last name */
 SELECT last_name, COUNT(*) AS COUNT
- FROM actor GROUP BY last_name;
+ FROM actor GROUP BY last_name ORDER BY COUNT DESC;
+ 
+ -- order by to check the which is the most commonlu used last name along with the count
 
 /* 4b. List last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors */
 
 SELECT last_name, COUNT(*) AS COUNT
  FROM actor GROUP BY last_name
- HAVING COUNT >= 2;
+ HAVING COUNT >= 2 ORDER BY COUNT;
+ 
+ -- Used order by to verify that count greater than or equal to 2
  
  /* 4c. The actor `HARPO WILLIAMS` was accidentally entered in the `actor` table as `GROUCHO WILLIAMS`. Write a query to fix the record */
  UPDATE actor 
@@ -66,20 +70,30 @@ DESCRIBE address;
 
 /* 6a. Use `JOIN` to display the first and last names, as well as the address, of each staff member. 
 Use the tables `staff` and `address`: */
-SELECT s.first_name, s.last_name, CONCAT_WS( "",a.address , a.address2, ', ' , a.district, '\n', a.postal_code) AS "Address" 
+SELECT s.first_name, s.last_name, CONCAT_WS( "",a.address , a.address2, ', ' , a.district, " ", a.postal_code) AS "Address" 
 FROM staff s LEFT JOIN address a ON s.address_id = a.address_id;
 
 /* 6b. Use `JOIN` to display the total amount rung up by each staff member in August of 2005. 
 Use tables `staff` and `payment` */
-SELECT s.first_name, s.last_name, SUM(p.amount) AS "Total Amount" 
-FROM payment p LEFT JOIN staff s ON p.staff_id = s.staff_id GROUP BY s.first_name;
+
+SELECT s.first_name, s.last_name, SUM(p.amount) AS Total_Amount
+FROM (select * from payment where payment_date like '2005-08%')  p 
+LEFT  JOIN staff s 
+	ON p.staff_id = s.staff_id    
+GROUP BY s.first_name;
 
 /* 6c. List each film and the number of actors who are listed for that film. Use tables `film_actor` and `film`. Use inner join. */
 SELECT f.title, COUNT(a.actor_id) AS "Total" 
-FROM film f LEFT JOIN film_actor a ON f.film_id = a.film_id GROUP BY f.title;
+FROM film f INNER JOIN film_actor a ON f.film_id = a.film_id GROUP BY f.title;
 
 /* 6d. How many copies of the film `Hunchback Impossible` exist in the inventory system? */
+-- Using the sub query
 select count(*) AS "Total copies" from inventory WHERE film_id = (select film_id from film WHERE title = "Hunchback Impossible");
+
+-- Using the Inner join
+select count(*) AS "Total copies" from inventory i inner join film f 
+on f.film_id = i.film_id
+and f.title = "Hunchback Impossible";
 
 /* 6e. Using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer. 
 List the customers alphabetically by last name: */
@@ -94,8 +108,8 @@ Use subqueries to display the titles of movies starting with the letters `K` and
 SELECT title FROM film 
 WHERE title LIKE "K%" OR title LIKE "Q%" AND language_id = (select language_id from language WHERE name = "English");
 
-/* Use subqueries to display all actors who appear in the film `Alone Trip` */
-SELECT CONCAT(first_name, " " , last_name) AS "Actor's Name" FROM actor_info
+/* 7b. Use subqueries to display all actors who appear in the film `Alone Trip` */
+SELECT CONCAT(first_name, " " , last_name) AS Actors_Name FROM actor_info
 WHERE actor_id IN (SELECT actor_id FROM film_actor WHERE 
 film_id IN (select film_id from film where title = "Alone Trip")) GROUP BY first_name;
         
